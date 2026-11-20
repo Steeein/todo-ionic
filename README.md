@@ -9,6 +9,7 @@
 | **Profesor** | Boris Marcelo Belmar Muñoz |
 | **Integrantes** | Diego Abaroa · Claudio Ramos |
 | **Proyecto** | `todo-ionic` — continuación del proyecto de la Unidad 1 |
+| **Repositorio** | https://github.com/Steeein/todo-ionic |
 | **Entrega** | Noviembre de 2026 |
 
 ---
@@ -356,6 +357,15 @@ El proyecto pasa el análisis estático de ESLint + Angular ESLint sin advertenc
 Node.js 20 o superior y npm. Para compilar en Android: JDK 17 o superior y el SDK de Android
 (con Android Studio o sólo las *command-line tools*, más `platform-tools`, `platforms/android-36`,
 `build-tools/36.0.0` y, si se va a emular, `emulator` y una imagen de sistema).
+
+### Obtener el código
+
+El proyecto está publicado en https://github.com/Steeein/todo-ionic y también se entrega
+comprimido. Para clonarlo:
+
+```powershell
+git clone https://github.com/Steeein/todo-ionic.git
+```
 
 ### Instalación
 
