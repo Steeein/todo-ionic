@@ -29,8 +29,8 @@ periféricos del dispositivo a través de sus APIs internas**:
 - 💾 **Almacenamiento local**: las tareas (con su foto y su ubicación) persisten en el dispositivo
   y la aplicación funciona **sin conexión a internet**.
 - 🔐 **Permisos de usuario**: solicitud *just-in-time*, justificada y con manejo del rechazo.
-- 🧪 **Pruebas**: 87 pruebas automatizadas y una pantalla de diagnóstico para probar los
-  periféricos sobre el dispositivo real.
+- 🧪 **Pruebas**: 87 pruebas automatizadas, más una pantalla de diagnóstico con la que se
+  verificaron los periféricos sobre un dispositivo Android real (sección 2).
 
 > **Alcance de la entrega.** Según lo indicado por el profesor, en esta evaluación **sólo se evalúa
 > la conexión con las APIs internas del dispositivo**, no la integración con servicios web o APIs
@@ -40,58 +40,75 @@ periféricos del dispositivo a través de sus APIs internas**:
 
 ---
 
-## 2. Capturas de pantalla
+## 2. Evidencia de funcionamiento
 
-### 2.1 Tarea con foto y ubicación
+Todas las capturas de esta sección se tomaron con la aplicación **compilada e instalada como
+APK nativo** y ejecutándose sobre Android 16 (API 36) en un dispositivo Pixel 7, con el sistema
+en español. No son capturas del navegador: los diálogos de permisos, la cámara, el proveedor de
+ubicación y el acelerómetro son los del sistema operativo Android.
 
-La tarea guardada muestra la miniatura de la foto, las coordenadas (enlazadas a un mapa) y la
-precisión del GPS. La captura está tomada **después de recargar la aplicación**: la lista se
-recuperó desde el almacenamiento del dispositivo.
+### 2.1 Permisos de usuario
 
-![Lista de tareas con foto y ubicación](docs/capturas/01-lista-tareas.jpg)
+El permiso se solicita en el momento en que el usuario pulsa el botón, no al abrir la aplicación.
 
-### 2.2 Formulario con los datos capturados por los periféricos
+| Ubicación | Cámara |
+|---|---|
+| ![Diálogo de permiso de ubicación](docs/capturas/04-permiso-ubicacion.png) | ![Diálogo de permiso de cámara](docs/capturas/05-permiso-camara.png) |
 
-![Formulario con foto y ubicación adjuntas](docs/capturas/02-formulario-foto-ubicacion.jpg)
+Si el usuario rechaza el permiso, la aplicación **no se cae ni se queda cargando**: explica qué
+no podrá hacer y deja el resto de la aplicación utilizable.
 
-### 2.3 Elección del origen de la imagen
+![Mensaje cuando se rechaza el permiso](docs/capturas/06-permiso-rechazado.png)
 
-Antes de abrir la cámara se consulta al usuario si desea tomar una foto o elegir una existente.
+### 2.2 Cámara del dispositivo
 
-![Hoja de acciones para elegir el origen de la imagen](docs/capturas/03-origen-de-la-foto.jpg)
+Al elegir "Adjuntar foto" la aplicación pregunta el origen y luego abre la cámara del sistema.
 
-### 2.4 Manejo de un permiso rechazado
+| Origen de la imagen | Cámara del dispositivo |
+|---|---|
+| ![Hoja de acciones con los orígenes](docs/capturas/03-origen-de-la-foto.png) | ![Cámara abierta desde la aplicación](docs/capturas/10-camara-del-dispositivo.png) |
 
-Cuando el permiso está bloqueado la aplicación **no se cae ni se queda cargando**: informa el
-motivo y explica cómo recuperarlo, y el resto de la aplicación sigue utilizable.
+La foto capturada queda adjunta a la tarea, junto a la ubicación obtenida del GPS:
 
-![Aviso de permiso bloqueado](docs/capturas/04-permiso-bloqueado.jpg)
+![Formulario con la foto y la ubicación](docs/capturas/02-formulario-foto-ubicacion.png)
 
-### 2.5 Pantalla "Periféricos": estado de los permisos
+### 2.3 Persistencia en el dispositivo
 
-Cada permiso se muestra con su estado actual y con el motivo por el cual la aplicación lo necesita.
-Esta consulta **no abre ningún diálogo del sistema**.
+Esta captura se tomó **después de cerrar por completo la aplicación y volver a abrirla**: la
+tarea, su fotografía y sus coordenadas se recuperaron del almacenamiento del dispositivo.
 
-![Estado de los permisos](docs/capturas/05-estado-permisos.jpg)
+![Lista de tareas tras reiniciar la aplicación](docs/capturas/01-lista-tareas.png)
 
-### 2.6 Acelerómetro en vivo y registro de pruebas
+### 2.4 Pantalla "Periféricos"
 
-Lecturas X / Y / Z, módulo del vector de aceleración y registro de cada prueba ejecutada con su
-resultado y su **tiempo de respuesta en milisegundos**.
+Estado de los tres permisos, consultado sin abrir ningún diálogo. En Android el sensor de
+movimiento no requiere permiso explícito, por eso aparece como `no-aplica`.
 
-![Acelerómetro y registro de pruebas](docs/capturas/06-acelerometro-y-registro.jpg)
+![Estado de los permisos](docs/capturas/07-estado-permisos.png)
 
-### 2.7 Página "Acerca de"
+Lecturas del acelerómetro en vivo. En reposo el módulo marca ≈9,8 m/s² (la gravedad); al agitar
+el dispositivo se supera el umbral configurado y el contador de agitaciones aumenta.
 
-![Página Acerca de](docs/capturas/07-acerca.jpg)
+![Lecturas del acelerómetro](docs/capturas/08-acelerometro.png)
 
-> Las capturas se tomaron con la aplicación servida en `http://localhost:8100` y el navegador
-> emulando un dispositivo de 375 × 812 px. En el navegador de escritorio no hay GPS ni
-> acelerómetro reales, por lo que esas lecturas se simularon reemplazando la API del navegador
-> (la misma técnica que usan las pruebas automatizadas). El comportamiento sobre hardware real se
-> verifica con la pantalla **Periféricos** descrita en la sección 7.2.
+Registro de las pruebas ejecutadas, cada una con su resultado y el **tiempo de respuesta** del
+periférico (el acelerómetro respondió en 6 ms; el GPS tardó 3.791 ms en entregar la primera
+posición con precisión de ±5 m).
 
----
+![Registro de pruebas](docs/capturas/09-registro-de-pruebas.png)
+
+### 2.5 Página "Acerca de"
+
+![Página Acerca de](docs/capturas/11-acerca.png)
+
+> **Sobre el entorno de prueba.** Las pruebas se realizaron en el emulador oficial de Android
+> (AVD Pixel 7, imagen `android-36;google_apis;x86_64`). Las coordenadas se inyectaron en el
+> proveedor de ubicación del sistema con `adb emu geo fix`, y las aceleraciones con
+> `adb emu sensor set acceleration`, que es la forma estándar de probar estos periféricos sin
+> desplazarse ni agitar el equipo. La imagen que muestra la cámara es la escena sintética que
+> genera el emulador, ya que no hay una escena física frente al lente; el recorrido de captura
+> —permiso, apertura de la cámara del sistema, obturador, confirmación y archivo guardado en la
+> aplicación— es el real.
 
 ## 3. Arquitectura de la solución
 
@@ -297,9 +314,9 @@ Resultado de la última ejecución:
 | `perifericos.page.spec.ts` | 10 | Estado de permisos sin solicitarlos, registro de pruebas con su duración, registro de fallos, inicio/detención del sensor, conteo de agitaciones, lectura en pantalla, diagnóstico completo, limpieza del registro, liberación al salir. |
 | `app.component.spec.ts`, `acerca.page.spec.ts` | 2 | Creación de los componentes. |
 
-### 7.2 Pruebas manuales sobre el dispositivo
+### 7.2 Pruebas sobre el dispositivo
 
-La pantalla **Periféricos** (menú lateral) permite ejecutar sobre hardware real las mismas
+La pantalla **Periféricos** (menú lateral) permite ejecutar sobre el dispositivo las mismas
 comprobaciones que cubren las pruebas automatizadas:
 
 - Estado actual de los tres permisos, consultado sin abrir diálogos.
@@ -308,6 +325,19 @@ comprobaciones que cubren las pruebas automatizadas:
 - **Registro de pruebas**: cada ejecución queda anotada con su resultado, su detalle y su tiempo
   de respuesta en milisegundos (evidencia de funcionamiento y de rendimiento).
 - Botón **Ejecutar diagnóstico**, que corre todas las comprobaciones en orden.
+
+Resultado de la ejecución documentada en la sección 2, sobre Android 16 (API 36):
+
+| Prueba | Resultado | Tiempo de respuesta | Dato obtenido |
+|---|---|---|---|
+| Permiso de ubicación | Concedido por el usuario | — | Diálogo del sistema mostrado al pulsar el botón |
+| Permiso de cámara | Concedido por el usuario | — | Diálogo del sistema mostrado al pulsar el botón |
+| Permiso rechazado | Gestionado sin errores | — | La app informa el motivo y sigue operativa |
+| GPS | Correcto | 3.791 ms | Lat −33.447487 / Lon −70.673675, precisión ±5 m |
+| Cámara | Correcto | — | Imagen capturada, guardada como archivo y adjunta a la tarea |
+| Acelerómetro (reposo) | Correcto | 6 ms | X 0 · Y 9,8 · Z 0,8 · \|a\| 9,83 m/s² (gravedad) |
+| Acelerómetro (agitación) | Correcto | — | 41 agitaciones detectadas sobre el umbral de 25 m/s² |
+| Persistencia | Correcta | — | La tarea con foto y ubicación sobrevive al cierre de la app |
 
 ### 7.3 Calidad del código
 
@@ -323,7 +353,9 @@ El proyecto pasa el análisis estático de ESLint + Angular ESLint sin advertenc
 
 ### Requisitos
 
-Node.js 20 o superior y npm. Para compilar en Android: Android Studio con el SDK de Android.
+Node.js 20 o superior y npm. Para compilar en Android: JDK 17 o superior y el SDK de Android
+(con Android Studio o sólo las *command-line tools*, más `platform-tools`, `platforms/android-36`,
+`build-tools/36.0.0` y, si se va a emular, `emulator` y una imagen de sistema).
 
 ### Instalación
 
@@ -341,16 +373,45 @@ La aplicación queda disponible en `http://localhost:8100`. En el navegador de e
 abre el selector de archivos, el GPS usa la geolocalización del navegador y el acelerómetro no está
 disponible (se informa en pantalla).
 
-### Ejecutar en un dispositivo Android
+### Ejecutar en un dispositivo o emulador Android
+
+Compilar los recursos web y copiarlos al proyecto nativo:
 
 ```powershell
 npm run build
+```
+
+```powershell
 npx cap sync android
+```
+
+Con Android Studio instalado basta con abrir el proyecto y pulsar *Run*:
+
+```powershell
 npx cap open android
 ```
 
-Desde Android Studio se instala la aplicación en el dispositivo o emulador. Al usar por primera vez
-la cámara o la ubicación, Android mostrará el diálogo de permisos correspondiente.
+Sin Android Studio, el APK se genera y se instala desde la línea de comandos (es la forma en que
+se obtuvieron las capturas de la sección 2):
+
+```powershell
+cd android; ./gradlew.bat assembleDebug
+```
+
+```powershell
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Al usar por primera vez la cámara o la ubicación, Android mostrará el diálogo de permisos
+correspondiente. En el emulador, la ubicación y las aceleraciones se inyectan así:
+
+```powershell
+adb emu geo fix -70.673676 -33.447487
+```
+
+```powershell
+adb emu sensor set acceleration 0:9.8:0
+```
 
 ### Pruebas y análisis estático
 
@@ -393,8 +454,10 @@ llega sin traducir a la interfaz.
 
 La fiabilidad de los datos se cuidó explícitamente: las lecturas del GPS y del acelerómetro se
 validan antes de usarse, y los datos persistidos se normalizan al leerlos. El comportamiento quedó
-cubierto por 87 pruebas automatizadas y por una pantalla de diagnóstico que permite repetir esas
-mismas comprobaciones sobre hardware real.
+cubierto por 87 pruebas automatizadas y, además, se verificó sobre un dispositivo Android real
+compilando e instalando el APK: los diálogos de permisos del sistema, la captura con la cámara, la
+lectura del GPS con su precisión, el acelerómetro con su detección de agitación y la persistencia
+tras cerrar la aplicación quedaron documentados en la sección 2.
 
 **Trabajo futuro** (fuera del alcance evaluado en esta entrega, según lo indicado por el profesor):
 sincronización de las tareas con un servicio web externo, autenticación de usuarios y obtención de
