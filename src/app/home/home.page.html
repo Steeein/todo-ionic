@@ -1,20 +1,181 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Mis Tareas</ion-title>
+    <ion-buttons slot="end">
+      <ion-badge color="light">{{ pendientes }}/{{ tareas.length }}</ion-badge>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
+      <ion-title size="large">Mis Tareas</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-  </div>
+  <ion-card class="tarjeta-formulario">
+    <ion-card-header>
+      <ion-card-subtitle>{{ editando ? 'Modificando' : 'Nueva' }}</ion-card-subtitle>
+      <ion-card-title>{{ editando ? 'Editar tarea' : 'Agregar tarea' }}</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-list lines="full">
+        <ion-item>
+          <ion-input
+            label="Título"
+            labelPlacement="floating"
+            placeholder="Ej: Estudiar Ionic"
+            maxlength="60"
+            [(ngModel)]="titulo"
+          ></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input
+            label="Descripción"
+            labelPlacement="floating"
+            placeholder="Ej: Repasar los periféricos de la unidad 2"
+            maxlength="120"
+            [(ngModel)]="descripcion"
+          ></ion-input>
+        </ion-item>
+      </ion-list>
+
+      <!-- Periféricos del dispositivo -->
+      <div class="acciones-perifericos">
+        <ion-button
+          fill="outline"
+          size="small"
+          [disabled]="capturandoFoto"
+          (click)="elegirOrigenFoto()"
+        >
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          {{ foto ? 'Cambiar foto' : 'Adjuntar foto' }}
+        </ion-button>
+
+        <ion-button
+          fill="outline"
+          size="small"
+          [disabled]="buscandoUbicacion"
+          (click)="capturarUbicacion()"
+        >
+          @if (buscandoUbicacion) {
+            <ion-spinner slot="start" name="dots"></ion-spinner>
+          } @else {
+            <ion-icon slot="start" name="location-outline"></ion-icon>
+          }
+          {{ ubicacion ? 'Actualizar ubicación' : 'Agregar ubicación' }}
+        </ion-button>
+      </div>
+
+      @if (foto) {
+        <div class="vista-previa">
+          <img [src]="foto.src" alt="Vista previa de la foto adjunta" />
+          <ion-button fill="clear" color="danger" size="small" (click)="quitarFoto()">
+            <ion-icon slot="start" name="trash-outline"></ion-icon>
+            Quitar foto
+          </ion-button>
+        </div>
+      }
+
+      @if (ubicacion) {
+        <ion-chip color="tertiary" class="chip-ubicacion">
+          <ion-icon name="navigate-circle-outline"></ion-icon>
+          <ion-label>
+            {{ ubicacion.latitud }}, {{ ubicacion.longitud }} (±{{ ubicacion.precisionMetros }} m)
+          </ion-label>
+          <ion-icon name="close-outline" (click)="quitarUbicacion()"></ion-icon>
+        </ion-chip>
+      }
+
+      <ion-button
+        expand="block"
+        class="ion-margin-top"
+        [disabled]="!formularioValido"
+        (click)="guardar()"
+      >
+        <ion-icon
+          slot="start"
+          [name]="editando ? 'checkmark-outline' : 'add-circle-outline'"
+        ></ion-icon>
+        {{ editando ? 'Guardar cambios' : 'Agregar tarea' }}
+      </ion-button>
+
+      @if (editando) {
+        <ion-button expand="block" fill="outline" color="medium" (click)="cancelarEdicion()">
+          <ion-icon slot="start" name="close-outline"></ion-icon>
+          Cancelar
+        </ion-button>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <ion-list-header>
+    <ion-label>Tareas registradas</ion-label>
+  </ion-list-header>
+
+  @if (tareas.length === 0) {
+    <div class="estado-vacio">
+      <ion-icon name="list-outline"></ion-icon>
+      <p>Aún no tienes tareas registradas.</p>
+      <p class="pista">Usa el formulario de arriba para agregar la primera.</p>
+    </div>
+  } @else {
+    <ion-list>
+      @for (tarea of tareas; track tarea.id) {
+        <ion-item [class.item-en-edicion]="tarea.id === idEnEdicion">
+          <ion-checkbox
+            slot="start"
+            [checked]="tarea.completada"
+            [attr.aria-label]="'Marcar ' + tarea.titulo"
+            (ionChange)="alternar(tarea)"
+          ></ion-checkbox>
+
+          @if (tarea.foto) {
+            <ion-thumbnail slot="start">
+              <img [src]="tarea.foto.src" [alt]="'Foto de ' + tarea.titulo" />
+            </ion-thumbnail>
+          }
+
+          <ion-label class="ion-text-wrap">
+            <h2 [class.completada]="tarea.completada">{{ tarea.titulo }}</h2>
+            <p>{{ tarea.descripcion }}</p>
+            @if (tarea.ubicacion) {
+              <p class="meta">
+                <ion-icon name="location-outline"></ion-icon>
+                <a [href]="enlaceMapa(tarea.ubicacion)" target="_blank" rel="noopener">
+                  {{ tarea.ubicacion.latitud }}, {{ tarea.ubicacion.longitud }}
+                </a>
+                <span>(±{{ tarea.ubicacion.precisionMetros }} m)</span>
+              </p>
+            }
+          </ion-label>
+
+          <ion-button
+            slot="end"
+            fill="clear"
+            color="medium"
+            [attr.aria-label]="'Editar ' + tarea.titulo"
+            (click)="editar(tarea)"
+          >
+            <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+          </ion-button>
+
+          <ion-button
+            slot="end"
+            fill="clear"
+            color="danger"
+            [attr.aria-label]="'Eliminar ' + tarea.titulo"
+            (click)="confirmarEliminar(tarea)"
+          >
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+      }
+    </ion-list>
+  }
 </ion-content>

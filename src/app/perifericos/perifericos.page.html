@@ -1,0 +1,184 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Periféricos</ion-title>
+    <ion-buttons slot="end">
+      <ion-button [attr.aria-label]="'Refrescar permisos'" (click)="refrescarPermisos()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Periféricos</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-subtitle>Entorno de ejecución</ion-card-subtitle>
+      <ion-card-title>Plataforma: {{ plataforma }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p>
+        Esta pantalla comprueba, sobre el dispositivo real, el acceso a las APIs internas:
+        cámara, GPS y sensor de movimiento. Cada prueba registra su resultado y el tiempo
+        de respuesta del periférico.
+      </p>
+      <ion-button expand="block" class="ion-margin-top" [disabled]="ejecutando" (click)="diagnosticoCompleto()">
+        <ion-icon slot="start" name="play-outline"></ion-icon>
+        Ejecutar diagnóstico
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Estado de permisos -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-subtitle>Permisos de usuario</ion-card-subtitle>
+      <ion-card-title>Estado actual</ion-card-title>
+    </ion-card-header>
+    <ion-card-content class="ion-no-padding">
+      <ion-list lines="full">
+        <ion-item>
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          <ion-label class="ion-text-wrap">
+            <h3>Cámara</h3>
+            <p>{{ justificacion('camara') }}</p>
+          </ion-label>
+          <ion-badge slot="end" [color]="colorPermiso(permisos.camara)">{{ permisos.camara }}</ion-badge>
+        </ion-item>
+        <ion-item>
+          <ion-icon slot="start" name="location-outline"></ion-icon>
+          <ion-label class="ion-text-wrap">
+            <h3>Ubicación</h3>
+            <p>{{ justificacion('ubicacion') }}</p>
+          </ion-label>
+          <ion-badge slot="end" [color]="colorPermiso(permisos.ubicacion)">{{ permisos.ubicacion }}</ion-badge>
+        </ion-item>
+        <ion-item>
+          <ion-icon slot="start" name="pulse-outline"></ion-icon>
+          <ion-label class="ion-text-wrap">
+            <h3>Movimiento</h3>
+            <p>{{ justificacion('movimiento') }}</p>
+          </ion-label>
+          <ion-badge slot="end" [color]="colorPermiso(permisos.movimiento)">{{ permisos.movimiento }}</ion-badge>
+        </ion-item>
+      </ion-list>
+      <p class="nota-permisos">
+        Los permisos se solicitan sólo cuando se usa el periférico y nunca al abrir la
+        aplicación. Si un permiso aparece como <strong>bloqueado</strong>, debe habilitarse
+        desde los ajustes del sistema.
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Pruebas de cámara y GPS -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-subtitle>Pruebas de lectura</ion-card-subtitle>
+      <ion-card-title>Cámara y GPS</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-button
+        expand="block"
+        fill="outline"
+        [disabled]="ejecutando || !camaraDisponible"
+        (click)="probarCamara()"
+      >
+        <ion-icon slot="start" name="camera-outline"></ion-icon>
+        Probar cámara
+      </ion-button>
+      <ion-button
+        expand="block"
+        fill="outline"
+        [disabled]="ejecutando || !gpsDisponible"
+        (click)="probarUbicacion()"
+      >
+        <ion-icon slot="start" name="location-outline"></ion-icon>
+        Probar GPS
+      </ion-button>
+      @if (!camaraDisponible || !gpsDisponible) {
+        <ion-note color="medium">
+          Algún periférico no está disponible en esta plataforma; su botón queda deshabilitado.
+        </ion-note>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Acelerómetro -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-subtitle>Sensor de movimiento</ion-card-subtitle>
+      <ion-card-title>Acelerómetro</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if (sensorDisponible) {
+        <ion-button expand="block" [color]="sensorActivo ? 'danger' : 'primary'" (click)="alternarSensor()">
+          <ion-icon slot="start" [name]="sensorActivo ? 'stop-outline' : 'play-outline'"></ion-icon>
+          {{ sensorActivo ? 'Detener lectura' : 'Iniciar lectura' }}
+        </ion-button>
+
+        @if (lectura) {
+          <div class="ejes">
+            <div class="eje"><span>X</span><strong>{{ lectura.x }}</strong></div>
+            <div class="eje"><span>Y</span><strong>{{ lectura.y }}</strong></div>
+            <div class="eje"><span>Z</span><strong>{{ lectura.z }}</strong></div>
+            <div class="eje destacado"><span>|a|</span><strong>{{ lectura.magnitud }}</strong></div>
+          </div>
+          <ion-progress-bar [value]="lectura.magnitud / 40"></ion-progress-bar>
+          <p class="pie">
+            Valores en m/s² · muestreo cada 150 ms · agitaciones detectadas: {{ agitaciones }}
+          </p>
+        } @else {
+          <p class="pie">Sin lecturas todavía. Inicia la lectura y mueve el dispositivo.</p>
+        }
+      } @else {
+        <ion-note color="medium">
+          Este navegador no expone <code>DeviceMotionEvent</code>. La prueba debe realizarse
+          en el dispositivo móvil.
+        </ion-note>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Registro de pruebas -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-subtitle>Evidencia</ion-card-subtitle>
+      <ion-card-title>Registro de pruebas</ion-card-title>
+    </ion-card-header>
+    <ion-card-content class="ion-no-padding">
+      @if (registro.length === 0) {
+        <p class="pie ion-padding">Aún no se ha ejecutado ninguna prueba en esta sesión.</p>
+      } @else {
+        <ion-list lines="full">
+          @for (linea of registro; track linea.momento + linea.periferico) {
+            <ion-item>
+              <ion-icon
+                slot="start"
+                [name]="linea.exito ? 'checkmark-circle-outline' : 'close-circle-outline'"
+                [color]="linea.exito ? 'success' : 'danger'"
+              ></ion-icon>
+              <ion-label class="ion-text-wrap">
+                <h3>{{ linea.periferico }} · {{ linea.momento }}</h3>
+                <p>{{ linea.detalle }}</p>
+              </ion-label>
+              <ion-note slot="end">{{ linea.duracionMs }} ms</ion-note>
+            </ion-item>
+          }
+        </ion-list>
+        <div class="ion-padding">
+          <ion-button fill="clear" size="small" color="medium" (click)="limpiarRegistro()">
+            Limpiar registro
+          </ion-button>
+        </div>
+      }
+    </ion-card-content>
+  </ion-card>
+</ion-content>

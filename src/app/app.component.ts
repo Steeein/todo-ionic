@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { addIcons } from 'ionicons';
+import { hardwareChipOutline, informationCircleOutline, listOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-root',
@@ -7,5 +9,13 @@ import { Component } from '@angular/core';
   standalone: false,
 })
 export class AppComponent {
-  constructor() {}
+  paginas = [
+    { titulo: 'Mis Tareas', ruta: '/home', icono: 'list-outline' },
+    { titulo: 'Periféricos', ruta: '/perifericos', icono: 'hardware-chip-outline' },
+    { titulo: 'Acerca de', ruta: '/acerca', icono: 'information-circle-outline' },
+  ];
+
+  constructor() {
+    addIcons({ listOutline, hardwareChipOutline, informationCircleOutline });
+  }
 }
